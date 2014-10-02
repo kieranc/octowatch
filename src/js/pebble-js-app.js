@@ -6,7 +6,7 @@ function fetchPrinterStatus() {
   var octoprint_port = localStorage.getItem('octoprintport');
   var octoprint_api_key = localStorage.getItem('octoprintapikey');
 
-  var octoprint_api_url = 'http://' + octoprint_host + ':' + octoprint_port + '/api/state?apikey=' + octoprint_api_key;
+  var octoprint_api_url = 'http://' + octoprint_host + ':' + octoprint_port + '/api/printer?apikey=' + octoprint_api_key;
   
   var response;
   var req = new XMLHttpRequest();
