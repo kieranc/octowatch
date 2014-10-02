@@ -1,4 +1,10 @@
-var printing = false;
+Pebble.addEventListener("ready",
+    function(e) {
+      console.log("got ready event");
+    }
+);
+
+//var printing = false;
 
 function fetchPrinterStatus() {
 
@@ -6,7 +12,7 @@ function fetchPrinterStatus() {
   var octoprint_port = localStorage.getItem('octoprintport');
   var octoprint_api_key = localStorage.getItem('octoprintapikey');
 
-  var octoprint_api_url = 'http://' + octoprint_host + ':' + octoprint_port + '/api/printer?apikey=' + octoprint_api_key;
+  var octoprint_api_url = 'http://' + octoprint_host + ':' + octoprint_port + '/api/job?apikey=' + octoprint_api_key;
   
   var response;
   var req = new XMLHttpRequest();
@@ -16,26 +22,29 @@ function fetchPrinterStatus() {
     if(req.status == 200) {
       response = JSON.parse(req.responseText);
       
-      var filename = response.job.filename;
+      var filename = response.job.file.name;
       
       // send notification when done
-      if(printing && !response.state.flags.printing){
-        var d = new Date();
-        Pebble.showSimpleNotificationOnPebble('Printing Complete', filename + ' finished printing at ' + d);
-      }
+      // if(printing && !response.state.flags.printing){
+      //if(response.state == "Printing"){
+      //  var d = new Date();
+      //  Pebble.showSimpleNotificationOnPebble('Printing Complete', filename + ' finished printing at ' + d);
+      //}
       
-      printing = response.state.flags.printing;
+      //printing = response.state;
       
       var remaining = response.progress.printTimeLeft;
       var remaining_string = '00:00';
       
       if(remaining){
-        remaining_string = remaining.toString().substring(0,5);
+      //  remaining_string = remaining.toString().substring(0,5);
+          remaining_string = secondsToHm(remaining).toString();
       }
       
       remaining = remaining_string;
       
-      var prog_percent = Math.round(Number(response.progress.progress) * 100);
+      // var prog_percent = Math.round(Number(response.progress.progress) * 100);
+      var prog_percent = Math.round(response.progress.completion);
       prog_percent = prog_percent + '% complete';
       var progress = prog_percent.toString();
       
@@ -58,8 +67,15 @@ function fetchPrinterStatus() {
       console.log('something went wrong, ' + req.status);
       
     }
-  }
+  };
   req.send(null);
+}
+
+function secondsToHm(d) {
+d = Number(d);
+var h = Math.floor(d / 3600);
+var m = Math.floor(d % 3600 / 60);
+return ((h > 0 ? h + ":" : "") + (m > 0 ? (h > 0 && m < 10 ? "0" : "") + m + "" : "0")); 
 }
 
 function pausePrinter() {
@@ -91,7 +107,7 @@ function pausePrinter() {
     
       console.log('something went wrong, ' + req.status);
     }
-  }
+  };
   req.send(null);
 }
 
@@ -104,12 +120,6 @@ function appMessageNACK(e){
   console.log('message failed!');
   console.log(e.error);
 }
-
-Pebble.addEventListener("ready",
-    function(e) {
-      console.log("got ready event");
-    }
-);
 
 Pebble.addEventListener("appmessage",
   function(e) {
@@ -159,8 +169,3 @@ Pebble.addEventListener("webviewclosed", function(e) {
     }
   }
 );
-
-
-
-
-
