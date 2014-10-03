@@ -8,6 +8,7 @@ static TextLayer *time_remaining_label;
 static TextLayer *time_remaining_counter;
 static TextLayer *filename_label;
 static TextLayer *progress_label;
+static TextLayer *temperatures_label;
 
 enum {
 	OCTOPRINT_COMMAND = 0x0,
@@ -52,7 +53,8 @@ void in_received_handler(DictionaryIterator *received, void *context) {
 	Tuple *filename_tuple = dict_find(received, 0);
 	Tuple *remain_tuple = dict_find(received, 1);
 	Tuple *progress_tuple = dict_find(received, 2);
-
+  Tuple *temperatures_tuple = dict_find(received, 3);
+    
 	// Act on the found fields received
 	if (filename_tuple) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "setting file name to: %s", filename_tuple->value->cstring);
@@ -67,6 +69,10 @@ void in_received_handler(DictionaryIterator *received, void *context) {
 	if (progress_tuple) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "setting progress to: %s", progress_tuple->value->cstring);
 		text_layer_set_text(progress_label, progress_tuple->value->cstring);
+	}
+  if (temperatures_tuple) {
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "setting temperatures to: %s", temperatures_tuple->value->cstring);
+		text_layer_set_text(temperatures_label, temperatures_tuple->value->cstring);
 	}
 }
 
@@ -151,7 +157,7 @@ static void window_load(Window *window) {
 	// time remaining
 	GRect bg_bounds = layer_get_bounds(bg_layer);
 	time_remaining_label = text_layer_create(GRect(0, 0, bg_bounds.size.w, 25));
-	text_layer_set_text(time_remaining_label, "time remaining:");
+	text_layer_set_text(time_remaining_label, "Time remaining:");
 	text_layer_set_text_color(time_remaining_label, GColorWhite);
 	text_layer_set_background_color(time_remaining_label, GColorClear);
 	text_layer_set_font(time_remaining_label, fonts_get_system_font(FONT_KEY_GOTHIC_18));
@@ -167,7 +173,7 @@ static void window_load(Window *window) {
 	layer_add_child(bg_layer, text_layer_get_layer(time_remaining_counter));
 	
 	// filename
-	filename_label = text_layer_create(GRect(3, 78, (bg_bounds.size.w -4), 30));
+	filename_label = text_layer_create(GRect(5, 78, (bg_bounds.size.w -4), 30));
 	text_layer_set_overflow_mode(filename_label, GTextOverflowModeWordWrap);
 	text_layer_set_text(filename_label, "loading...");
 	text_layer_set_text_color(filename_label, GColorBlack);
@@ -177,13 +183,22 @@ static void window_load(Window *window) {
 	layer_add_child(bg_layer, text_layer_get_layer(filename_label));
 	
 	// progress
-	progress_label = text_layer_create(GRect(3, 122, (bg_bounds.size.w -4), 25));
+	progress_label = text_layer_create(GRect(5, 96, (bg_bounds.size.w -4), 25));
 	text_layer_set_text(progress_label, "loading...");
-	text_layer_set_text_color(progress_label, GColorWhite);
+	text_layer_set_text_color(progress_label, GColorBlack);
 	text_layer_set_background_color(progress_label, GColorClear);
-	text_layer_set_font(progress_label, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	text_layer_set_font(progress_label, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 	text_layer_set_text_alignment(progress_label, GTextAlignmentLeft);
 	layer_add_child(bg_layer, text_layer_get_layer(progress_label));
+  
+  // temperatures
+	temperatures_label = text_layer_create(GRect(5, 124, (bg_bounds.size.w -4), 25));
+	text_layer_set_text(temperatures_label, "loading...");
+	text_layer_set_text_color(temperatures_label, GColorWhite);
+	text_layer_set_background_color(temperatures_label, GColorClear);
+	text_layer_set_font(temperatures_label, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+	text_layer_set_text_alignment(temperatures_label, GTextAlignmentLeft);
+	layer_add_child(bg_layer, text_layer_get_layer(temperatures_label));
 	
 	
 	// start timer to auto-update
@@ -195,6 +210,7 @@ static void window_unload(Window *window) {
 	text_layer_destroy(time_remaining_counter);
 	text_layer_destroy(filename_label);
 	text_layer_destroy(progress_label);
+  text_layer_destroy(temperatures_label);
 }
 
 static void init(void) {
@@ -211,8 +227,8 @@ static void init(void) {
 	app_message_register_outbox_sent(out_sent_handler);
 	app_message_register_outbox_failed(out_failed_handler);
 	
-	const uint32_t inbound_size = 64;
-	const uint32_t outbound_size = 64;
+	const uint32_t inbound_size = 128;
+	const uint32_t outbound_size = 128;
 	app_message_open(inbound_size, outbound_size);
   
 	const bool animated = true;
