@@ -74,10 +74,13 @@ function fetchall() {
 }
 
 function secondsToHm(d) {
-d = Number(d);
-var h = Math.floor(d / 3600);
-var m = Math.floor(d % 3600 / 60);
-return ((h > 0 ? h + ":" : "") + (m > 0 ? (h > 0 && m < 10 ? "0" : "") + m + "" : "0")); 
+  d = Number(d);
+  var h = Math.floor(d / 3600);
+  var m = Math.floor(d % 3600 / 60);
+  if (m < 10) {
+    m = '0' + m;
+  }
+  return (h + ':' + m);
 }
 
 function appMessageACK(e){
